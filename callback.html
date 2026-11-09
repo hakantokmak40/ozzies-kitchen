@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <title>Sign-in complete – Ozzie's Kitchen Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="logo.png">
+</head>
+<body>
+<main>
+  <header>
+    <img class="mark" src="logo.png" alt="özzies kitchen logo" width="64" height="64">
+    <h1 id="title">Returning to Ozzie's Kitchen Studio…</h1>
+  </header>
+
+  <div class="card" id="ok" hidden>
+    <p>Sign-in succeeded. You are being sent back to the Studio app on this computer.</p>
+    <p class="muted">Nothing happening? Make sure the Studio app is running on this Mac, then press the button.
+      Or copy the code below into the app.</p>
+    <p><button id="go" type="button">Continue to the Studio app</button></p>
+    <p class="muted">Code:</p>
+    <p><span class="code" id="code"></span></p>
+    <p><button id="copy" type="button">Copy code</button></p>
+  </div>
+
+  <div class="card" id="err" hidden>
+    <p><strong>Sign-in was not completed.</strong></p>
+    <p class="muted" id="errtext"></p>
+  </div>
+</main>
+<script>
+  // The local Studio app listens on this port (OAUTH_LOCAL_PORT in .env).
+  var LOCAL = "http://localhost:8777/oauth/callback";
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get("code");
+  var error = params.get("error_description") || params.get("error_reason") || params.get("error");
+  var target = LOCAL + window.location.search;
+
+  if (code) {
+    document.getElementById("ok").hidden = false;
+    document.getElementById("code").textContent = code;
+    document.getElementById("go").onclick = function () { window.location.href = target; };
+    document.getElementById("copy").onclick = function () {
+      try { navigator.clipboard.writeText(code); this.textContent = "Copied"; } catch (e) {}
+    };
+    var already = false;
+    try { already = sessionStorage.getItem("ozzie-forwarded") === code; sessionStorage.setItem("ozzie-forwarded", code); } catch (e) {}
+    if (!already) { setTimeout(function () { window.location.href = target; }, 700); }
+  } else {
+    document.getElementById("title").textContent = "Ozzie's Kitchen Studio";
+    document.getElementById("err").hidden = false;
+    document.getElementById("errtext").textContent = error || "No sign-in code was received.";
+  }
+</script>
+</body>
+</html>
